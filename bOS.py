@@ -36,8 +36,8 @@ import json
 
 version = []
 string = 0
-#url = "http://fourteam4t.temp.swtest.ru/"
-url = "http://bosstageserver.com.swtest.ru/"
+url = "http://fourteam4t.temp.swtest.ru/"
+#url = "http://bosstageserver.com.swtest.ru/"
 
 print("Loaded successfully")
 
