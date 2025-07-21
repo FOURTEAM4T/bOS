@@ -1,27 +1,23 @@
 import os
 cwd = os.getcwd()
 from pygame import mixer
-f = open("sfx.4set","r")
-sfx = f.read()
-if sfx != "none":
-    mixer.init()
-    mixer.music.load(cwd+"/sfx/"+sfx+".mp3")
-    mixer.music.play()
-f.close()
 print("Loading...")
-print("""$-------$$$$$---$$$$-
-$------$$---$$-$$----
-$$$$---$$---$$--$$$$-
-$--$$--$$---$$-----$$
-$$$$----$$$$$---$$$$-""")
+print("""\033[93;1m$-------$$$$$---$$$$---------------------
+$------$$---$$-$$------------------------
+$$$$---$$---$$--$$$$---$-------$--$-$$$$$
+$--$$--$$---$$-----$$--$$-$$---$$$$---$--
+$$$$----$$$$$---$$$$---$$-$$------$---$--
+---------------------------$------$---$--
+#####################-----$--------------\033[0m""")
 import requests
 import sys
 import time
 import random
 import datetime
+import zipfile
 import shutil
 import webbrowser
-import win11toast
+import plyer
 from locale import currency
 import platform
 import atexit
@@ -39,7 +35,22 @@ string = 0
 url = "http://fourteam4t.temp.swtest.ru/"
 #url = "http://bosstageserver.com.swtest.ru/"
 
-print("Loaded successfully")
+f = open(cwd+"\\modules.4set","r")
+modules = f.read()
+nothing = ""
+modules = modules.split(",")
+if nothing in modules:
+    removing = True
+    while removing == True:
+        modules.remove(nothing)
+        if not nothing in modules:
+            removing = False
+y = 0
+for i in modules:
+    __import__(modules[y])
+    y = y + 1
+
+print("\033[92;1mLoaded successfully\033[0m")
 
 def install():
     try:
@@ -134,29 +145,33 @@ while f.read() == "":
 f.close()
 
 try:
-    print("Connecting to server...")
+    print("Connecting to server...",end = "\r")
     response = requests.get(url+"lastversion.txt")
     response4 = requests.get(url+"emmute.txt")
     response5 = requests.get(url+"startup.txt")
+    response7 = requests.get(url+"lastavver.txt")
     if response4.text.lower() == "true":
         print("Maintenance emmute in progress. No info for updates")
     else:
-        if response.status_code == 200:
-            lastver = response.text.split(".")
-        else:
-            print(f"Error: {response.status_code}")
+        update = False
+        lastver = response.text.split(".")
+        lastavver = response.text.split(".")
         with open("ver.4t","r") as f:
             version = f.read().split(".")
         if int(lastver[0]) > int(version[0]) or int(lastver[1]) > int(version[1]):
             print('New version is available! You can update by command "update"')
+            update = True
         startup = response5.text.split(",")
         y = 0
         for i in startup:
             response6 = requests.get(url+startup[y])
             exec(response6.text)
             y = y+1
+        if update == False:
+            print("\033[92;1mSuccessfully connected to server\033[0m")
 except:
-    print("No info for updates")
+    plyer.notification.notify(message="bOS Enter System notification:\nCheck your internet connection. Application may have updates",app_name="bOS Enter system",app_icon=cwd+"\\Res\\bOSappicon.ico",title = "Connection failed")
+    print("\033[91;1mError while connecting to server\033[0m")
 
 
 
@@ -177,7 +192,7 @@ def command(command):
         except:
             print('SystemError 001: "COMMAND CODE GOT CRASHED"')
             f.close()
-    elif com[0] == "update" or com[0] == "reinstall" or com[0] == "restart" or com[0] == "server":
+    elif com[0] == "update" or com[0] == "reinstall" or com[0] == "restart" or com[0] == "server" or com[0] == "install":
         if com[0] == "update":
             f = open(cwd+"/ver.4t","r")
             inp = input("Sure you want to update to last version? After update you wont be able to install earlier version.(Y/n)").lower()
@@ -224,16 +239,58 @@ def command(command):
                 print("Restarting in 2 seconds...")
                 time.sleep(2)
                 import restart
+        if com[0] == "install":
+            """if os.path.isfile(com[1]+"\\main.bosm"):
+                print("Installing...")
+                f = open(com[1]+"\\main.bosm","r")
+                data = f.read()
+                f.close()
+                os.chdir(com[1])
+                cwd2 = os.getcwd()
+                os.chdir(cwd+"\\_interal")
+                zip_filename = "base_library.zip"
+                f = open(cwd+"\\modules.4set","r")
+                f2 = open(cwd+"\\modules.4set","a")
+                if f.read() == "":
+                    f2.write(cwd2.split("\\")[-1])
+                else:
+                    f2.write(","+cwd2.split("\\")[-1])
+                f.close()
+                f2.close()
+                os.remove(zip_filename.strip(".zip"))
+                os.chdir(cwd)
+                print("Installed successful")
+            else:
+                print("No such file")"""
+            print("Move your module file to destination "+cwd+"\\_internal\\base_library.zip")
+            print('Then type "y" here')
+            an = input("Are your files ready?(y/n)")
+            if an == "n":
+                pass
+            if an == "y":
+                print("Installing...")
+                f = open(cwd+"\\modules.4set","r")
+                f2 = open(cwd+"\\modules.4set","a")
+                if f.read() == "":
+                    f2.write(com[1])
+                else:
+                    f2.write(","+com[1])
+                f.close()
+                f2.close()
+
 
     else:
-        print("Incorrect command")
-f = open("music.4set","r")
-music = f.read()
-if music != "none":
-    mixer.init()
-    mixer.music.load(cwd+"/music/"+music+".mp3")
-    mixer.music.play(loops=-1)
-f.close()
+        y = 0
+        ans = False
+        for i in modules:
+            im = modules[y]
+            im2 = importlib.import_module(im)
+            ans = im2.main(com)
+        if ans:
+            pass
+        if ans == False:
+            print("\033[91;1mIncorrect command\033[0m")
+string = 1
 while True:
     inp = input(f"<{os.getcwd()},string:{string}> Enter your command:")
     command(inp)
