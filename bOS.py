@@ -1,6 +1,5 @@
 import os
 cwd = os.getcwd()
-from pygame import mixer
 print("Loading...")
 print("""\033[93;1m$-------$$$$$---$$$$---------------------
 $------$$---$$-$$------------------------
@@ -24,18 +23,22 @@ import atexit
 import glob
 import importlib
 import sys
-import psutil
 import logging
 import keyboard
 from ping3 import ping, verbose_ping
 import json
 
+def add_file(zip_path, file_to_add, arcname=None):
+    if arcname is None:
+        arcname = os.path.basename(file_to_add)
+    with zipfile.ZipFile(zip_path, 'a') as zipf:
+        zipf.write(file_to_add, arcname)
+
 version = []
 string = 0
 url = "http://fourteam4t.temp.swtest.ru/"
 #url = "http://bosstageserver.com.swtest.ru/"
-
-f = open(cwd+"\\modules.4set","r")
+f = open(cwd+"/modules.4set","r")
 modules = f.read()
 nothing = ""
 modules = modules.split(",")
@@ -51,6 +54,8 @@ for i in modules:
     y = y + 1
 
 print("\033[92;1mLoaded successfully\033[0m")
+
+
 
 def install():
     try:
@@ -190,7 +195,7 @@ def command(command):
             except IndexError:
                 print('CommandError 001: "NO NEEDEN ARGUMENT"')
         except:
-            print('SystemError 001: "COMMAND CODE GOT CRASHED"')
+            print('SystemError 001: "COMMAND GOT CRASHED"')
             f.close()
     elif com[0] == "update" or com[0] == "reinstall" or com[0] == "restart" or com[0] == "server" or com[0] == "install":
         if com[0] == "update":
@@ -240,45 +245,22 @@ def command(command):
                 time.sleep(2)
                 import restart
         if com[0] == "install":
-            """if os.path.isfile(com[1]+"\\main.bosm"):
-                print("Installing...")
-                f = open(com[1]+"\\main.bosm","r")
-                data = f.read()
-                f.close()
-                os.chdir(com[1])
-                cwd2 = os.getcwd()
-                os.chdir(cwd+"\\_interal")
-                zip_filename = "base_library.zip"
-                f = open(cwd+"\\modules.4set","r")
-                f2 = open(cwd+"\\modules.4set","a")
-                if f.read() == "":
-                    f2.write(cwd2.split("\\")[-1])
-                else:
-                    f2.write(","+cwd2.split("\\")[-1])
-                f.close()
-                f2.close()
-                os.remove(zip_filename.strip(".zip"))
-                os.chdir(cwd)
-                print("Installed successful")
-            else:
-                print("No such file")"""
-            print("Move your module file to destination "+cwd+"\\_internal\\base_library.zip")
-            print('Then type "y" here')
-            an = input("Are your files ready?(y/n)")
-            if an == "n":
-                pass
-            if an == "y":
-                print("Installing...")
-                f = open(cwd+"\\modules.4set","r")
-                f2 = open(cwd+"\\modules.4set","a")
-                if f.read() == "":
-                    f2.write(com[1])
-                else:
-                    f2.write(","+com[1])
-                f.close()
-                f2.close()
-
-
+            print("Don't close your bOS while proccesing!")
+            time.sleep(2)
+            print("Installing...")
+            f = open(cwd+f"/{com[1]}/displayname.4set","r")
+            name = f.read().strip("\n")
+            print("Setting up...")
+            f.close()
+            f = open(cwd+"/"+com[1]+"/setup.bscript","r")
+            exec(f.read())
+            print("Finishing...")
+            """
+            add_file(cwd+"/_internal/base_library.zip",cwd+"/"+com[1]+"/"+name+".bapp",name+".pyc")
+            """
+            shutil.move(cwd+"/"+com[1]+"/"+name+".bapp",cwd+"/"+name+".py")
+            f = open(cwd+"/modules.4set","a")
+            f.write(","+name)
     else:
         y = 0
         ans = False
@@ -292,6 +274,9 @@ def command(command):
             print("\033[91;1mIncorrect command\033[0m")
 string = 1
 while True:
-    inp = input(f"<{os.getcwd()},string:{string}> Enter your command:")
+    if len(os.getcwd().split("\\")) <= 4:
+        inp = input(f"<{os.getcwd()},string:{string}> $ ")
+    else:
+        inp = input(f'<{os.getcwd().split("\\")[0]}/.../{os.getcwd().split("\\")[-3]}/{os.getcwd().split("\\")[-2]}/{os.getcwd().split("\\")[-1]}/>')
     command(inp)
     string = string+1
